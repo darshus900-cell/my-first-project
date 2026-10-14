@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Face Attendance System</title>
+    <meta name="description" content="A professional, real-time facial recognition attendance system with liveness detection and duplicate logging protection.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container" id="app">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" role="navigation">
+            <div class="logo-area">
+                <span class="logo-icon">👤</span>
+                <div class="logo-text">
+                    <h2>SMART ATTEND</h2>
+                    <p>Facial Recognition Engine</p>
+                </div>
+            </div>
+            
+            <nav class="nav-links">
+                <button class="nav-btn active" id="btn-dashboard" onclick="switchTab('dashboard')">
+                    <span class="btn-icon">📊</span> Dashboard
+                </button>
+                <button class="nav-btn" id="btn-register" onclick="switchTab('register')">
+                    <span class="btn-icon">👤</span> Register Face
+                </button>
+                <button class="nav-btn" id="btn-faces" onclick="switchTab('faces')">
+                    <span class="btn-icon">🖼</span> Registered Faces
+                </button>
+                <button class="nav-btn" id="btn-logs" onclick="switchTab('logs')">
+                    <span class="btn-icon">🕒</span> Attendance Logs
+                </button>
+                <button class="nav-btn" id="btn-settings" onclick="switchTab('settings')">
+                    <span class="btn-icon">⚙️</span> System Settings
+                </button>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="clock" id="time-display">00:00:00</div>
+                <div class="date" id="date-display">May 22, 2026</div>
+            </div>
+        </aside>
+        
+        <!-- Main Content Area -->
+        <main class="content-area">
+            
+            <!-- Dashboard Tab -->
+            <section class="tab-content active" id="tab-dashboard">
+                <header class="tab-header">
+                    <h1>System Dashboard</h1>
+                </header>
+                
+                <div class="dashboard-grid">
+                    <!-- Left: Camera Streaming -->
+                    <div class="camera-card card">
+                        <div class="card-header">
+                            <h3>Live Camera Feed</h3>
+                            <span class="live-dot-indicator">● LIVE</span>
+                        </div>
+                        <div class="video-container" id="dashboard-video-container">
+                            <img id="camera-stream" src="/video_feed" alt="Real-time camera feed processing face recognition" onerror="this.src='/static/cam-offline.png'">
+                        </div>
+                        <div class="scanner-status" id="scanner-status-text">
+                            Scanning... Align your face and blink to verify.
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Stats & Logs -->
+                    <div class="stats-panel">
+                        <!-- Verification status card -->
+                        <div class="liveness-card card">
+                            <h3>🔒 Real-Time Verification</h3>
+                            <div class="verification-status active" id="liveness-status">Liveness Check: Active</div>
+                            <p class="verification-desc">The anti-spoofing engine tracks eye blinks to ensure liveness, preventing photo or screen attendance bypasses.</p>
+                        </div>
+                        
+                        <!-- Today's stats card -->
+                        <div class="stats-card card">
+                            <h3>📈 Today's Statistics</h3>
+                            <div class="stats-row stats-row-4">
+                                <div class="stat-box">
+                                    <span class="stat-num" id="stat-registered-count">0</span>
+                                    <span class="stat-label">Registered Users</span>
+                                </div>
+                                <div class="stat-box">
+                                    <span class="stat-num" id="stat-marked-count">0</span>
+                                    <span class="stat-label">Marked Today</span>
+                                </div>
+                                <div class="stat-box">
+                                    <span class="stat-num stat-present" id="stat-present-count">0</span>
+                                    <span class="stat-label">Present Today</span>
+                                </div>
+                                <div class="stat-box">
+                                    <span class="stat-num stat-absent" id="stat-absent-count">0</span>
+                                    <span class="stat-label">Absent Today</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent activity list -->
+                        <div class="activity-card card">
+                            <h3>🔔 Recent Check-Ins</h3>
+                            <ul class="activity-list" id="recent-logs-list">
+                                <!-- Populated dynamically by javascript -->
+                                <li class="empty-list-msg">No attendance entries recorded today.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Register Face Tab -->
+            <section class="tab-content" id="tab-register">
+                <header class="tab-header">
+                    <h1>Register New Face</h1>
+                </header>
+                
+                <div class="dashboard-grid">
+                    <!-- Left: Camera Preview -->
+                    <div class="camera-card card">
+                        <div class="card-header">
+                            <h3>Capture Face Bounding Frame</h3>
+                        </div>
+                        <div class="video-container" id="register-video-container">
+                            <img id="register-camera-stream" src="/video_feed" alt="Camera preview for face capture">
+                        </div>
+                        <div class="scanner-status">
+                            Ensure you look directly into the camera in a well-lit area.
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Input Details -->
+                    <div class="registration-form-panel">
+                        <div class="form-card card">
+                            <h3>User Registration Details</h3>
+                            <div class="form-group">
+                                <label for="reg-name-input">Full Name</label>
+                                <input type="text" id="reg-name-input" placeholder="e.g. John Doe" autocomplete="off">
+                            </div>
+                            
+                            <button class="primary-btn" id="btn-register-submit" onclick="submitRegistration()">
+                                Capture & Register Face
+                            </button>
+                            
+                            <div class="form-status-msg" id="registration-status-message"></div>
+                        </div>
+                        
+                        <div class="instruction-card card">
+                            <h3>Registration Instructions</h3>
+                            <ol class="instructions-list">
+                                <li>Type the full name of the student or employee in the input field.</li>
+                                <li>Look directly at the camera with a neutral facial expression.</li>
+                                <li>Remove hats, sunglasses, or masks to get a clean visual signature.</li>
+                                <li>Ensure that only ONE face is visible in the video frame.</li>
+                                <li>Click <strong>Capture & Register Face</strong> to lock in the 128D mathematical embedding.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Registered Faces Tab -->
+            <section class="tab-content" id="tab-faces">
+                <header class="tab-header logs-header">
+                    <h1>Registered User Faces</h1>
+                    <div class="search-box faces-search">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="faces-search-input" placeholder="Search by name..." onkeyup="filterRegisteredFaces()">
+                    </div>
+                </header>
+                
+                <div class="faces-grid" id="registered-faces-grid">
+                    <div class="faces-empty-msg">Loading registered faces...</div>
+                </div>
+            </section>
+            
+            <!-- Attendance Logs Tab -->
+            <section class="tab-content" id="tab-logs">
+                <header class="tab-header logs-header">
+                    <h1>Attendance Records</h1>
+                    <div class="logs-actions">
+                        <button class="secondary-btn" id="btn-export-csv" onclick="exportLogs()">
+                            📥 Export Logs
+                        </button>
+                        <a href="/api/download_csv" class="download-link-btn hidden" id="btn-download-csv" download>
+                            💾 Download CSV
+                        </a>
+                    </div>
+                </header>
+                
+                <div class="logs-card card">
+                    <div class="table-toolbar">
+                        <div class="search-box">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="logs-search-input" placeholder="Search by name or date..." onkeyup="filterLogsTable()">
+                        </div>
+                        <div class="date-filter">
+                            <input type="date" id="logs-date-filter" onchange="filterLogsByDate()">
+                            <button class="text-btn" onclick="clearLogsFilter()">Clear</button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="attendance-table" id="attendance-table-view">
+                            <thead>
+                                <tr>
+                                    <th>Employee Name</th>
+                                    <th>Registered On</th>
+                                    <th>Date</th>
+                                    <th>Login Time</th>
+                                    <th>Check-In</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendance-table-body">
+                                <!-- Populated dynamically by javascript -->
+                                <tr>
+                                    <td colspan="6" class="table-empty">Loading records...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- System Settings Tab -->
+            <section class="tab-content" id="tab-settings">
+                <header class="tab-header">
+                    <h1>System Settings</h1>
+                </header>
+                
+                <div class="settings-card card">
+                    <h3>Configure Recognition Parameters</h3>
+                    
+                    <div class="settings-group">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label for="setting-camera-index">Camera Source Index</label>
+                                <p class="setting-desc">Choose the camera hardware source connected to the system (0 is usually default integrated webcam).</p>
+                            </div>
+                            <div class="setting-control">
+                                <select id="setting-camera-index">
+                                    <option value="0">Default Camera (0)</option>
+                                    <option value="1">Secondary Camera (1)</option>
+                                    <option value="2">External Camera (2)</option>
+                                    <option value="3">Virtual Camera (3)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <hr class="settings-divider">
+                        
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label for="setting-liveness-toggle">Anti-Spoofing Verification (Liveness Check)</label>
+                                <p class="setting-desc">Enable eye-blink tracking to prevent printed photos or digital displays from marking attendance.</p>
+                            </div>
+                            <div class="setting-control">
+                                <label class="switch-toggle">
+                                    <input type="checkbox" id="setting-liveness-toggle" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <hr class="settings-divider">
+                        
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label for="setting-tolerance-slider">Matching Distance Tolerance (Strictness)</label>
+                                <p class="setting-desc">Euclidean distance threshold. Lower is stricter (requires exact matches, preventing false positives). Higher is loose.</p>
+                            </div>
+                            <div class="setting-control slider-control">
+                                <input type="range" id="setting-tolerance-slider" min="0.30" max="0.75" step="0.05" value="0.50" oninput="updateToleranceValueLabel(this.value)">
+                                <span class="slider-val-badge" id="tolerance-val-badge">0.50</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="primary-btn" id="btn-save-settings" onclick="saveSettings()">
+                        Save & Apply Settings
+                    </button>
+                    
+                    <div class="form-status-msg" id="settings-status-message"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script src="/static/app.js"></script>
+</body>
+</html>
